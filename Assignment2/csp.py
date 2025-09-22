@@ -1,5 +1,6 @@
 from typing import Any
 from queue import Queue
+from time import perf_counter
 
 
 class CSP:
@@ -43,6 +44,13 @@ class CSP:
                         self.binary_constraints[(variable1, variable2)].add((value1, value2))
                         self.binary_constraints[(variable1, variable2)].add((value2, value1))
 
+        # Instrumentation
+        self.bt_calls = 0
+        self.bt_failures = 0
+        self.ac3_runtime = 0.0
+        self.bt_runtime = 0.0
+        self.domains_after_ac3: dict[str, set] | None = None
+
     def _revise(self, xi, xj):
         """Remove values from Xi's domain that are inconsistent with Xj."""
         revised = False
@@ -64,6 +72,9 @@ class CSP:
             False if a domain becomes empty, otherwise True
         """
 
+        # Initialize ac_3 timer
+        start_time = perf_counter()
+
         # Initialize queue with arcs
         queue = Queue()
         for xi in self.variables:
@@ -82,6 +93,8 @@ class CSP:
                     if (xk, xi) in self.binary_constraints and xk != xj:
                         queue.put((xk, xi))
 
+        self.ac3_runtime = perf_counter() - start_time
+        self.domains_after_ac3 = {v: set(d) for v, d in self.domains.items()}
         return True
 
     def _is_consistent(self, var, val, assignment: dict[str, Any]) -> bool:
@@ -100,7 +113,7 @@ class CSP:
         return len(assignment) == len(self.variables)
 
     def _select_unassigned_variable(self, assignment: dict[str, Any]):
-        """Select the next unassigned variable (simple version: first unassigned)"""
+        """Select the next unassigned variable"""
         for var in self.variables:
             if var not in assignment:
                 return var
@@ -115,7 +128,12 @@ class CSP:
             A solution if any exists, otherwise None
         """
 
+        # Initialize backtracking timer
+        start_time = perf_counter()
+
         def backtrack(assignment: dict[str, Any]):
+            # Backtrack counter
+            self.bt_calls += 1
 
             if self._is_complete(assignment):
                 return assignment
@@ -128,10 +146,14 @@ class CSP:
                     result = backtrack(assignment)
                     if result is not None:
                         return result
-                    # Undo assignment on failure
+                    # delete assignment
                     del assignment[var]
+
+            # Failure counter
+            self.bt_failures += 1
             return None
 
+        self.bt_runtime = perf_counter() - start_time
         return backtrack({})
 
 
