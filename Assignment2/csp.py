@@ -106,7 +106,7 @@ class CSP:
                 return var
         raise ValueError("No unassigned variable found")
 
-    def backtracking_search(self) -> None | dict[str, Any]:
+    def backtracking_search(self):
         """Performs backtracking search on the CSP.
 
         Returns
