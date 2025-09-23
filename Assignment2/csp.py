@@ -49,7 +49,7 @@ class CSP:
         self.bt_failures = 0
         self.ac3_runtime = 0.0
         self.bt_runtime = 0.0
-        self.domains_after_ac3: dict[str, set] | None = None
+        self.domains_after_ac3 = None
 
     def _revise(self, xi, xj):
         """Remove values from Xi's domain that are inconsistent with Xj."""
