@@ -93,8 +93,10 @@ class CSP:
                     if (xk, xi) in self.binary_constraints and xk != xj:
                         queue.put((xk, xi))
 
-        self.ac3_runtime = perf_counter() - start_time
         self.domains_after_ac3 = {v: set(d) for v, d in self.domains.items()}
+
+        end_time = perf_counter()
+        self.ac3_runtime = end_time - start_time
         return True
 
     def _is_consistent(self, var, val, assignment: dict[str, Any]) -> bool:
@@ -153,8 +155,11 @@ class CSP:
             self.bt_failures += 1
             return None
 
-        self.bt_runtime = perf_counter() - start_time
-        return backtrack({})
+        backtrack_result = backtrack({})
+
+        end_time = perf_counter()
+        self.bt_runtime = end_time - start_time
+        return backtrack_result
 
 
 def alldiff(variables: list[str]) -> list[tuple[str, str]]:
